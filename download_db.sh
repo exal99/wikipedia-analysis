@@ -17,10 +17,13 @@ function download_file() {
 	fi
 	URL="https://dumps.wikimedia.your.org/$1wiki/$2"
 	echo "Downloading $FILE_NAME"
-	time wget -P "$CUR_DIR/$OUT_DIR" "$URL/$FILE_NAME"
-	if ["$3" != "sha1sums" ]; then
-		time grep $FILE_NANME "$CUR_DIR/$OUT_DIR/$1wiki-$2-sha1sums.txt" | sha1sum -c -
-		if [ $? -nq 0 ]; then 
+	wget -q --show-progress -P "$CUR_DIR/$OUT_DIR" "$URL/$FILE_NAME"
+	if [ "$3" != "sha1sums" ]; then
+		echo "[Info] Checking SHA-Checksum on $FILE_NAME"
+		cd "$OUT_DIR"
+		grep $FILE_NAME "$1wiki-$2-sha1sums.txt" | sha1sum -c -
+		cd ..
+		if [ $? -ne 0 ]; then 
 			echo "[Warning] Checksum failed for '$3'"
 		fi
 	fi 
@@ -36,7 +39,7 @@ elif [ "$#" -eq 3 ]; then
 elif [ "$#" -eq 1 ]; then 
 	echo "[Warrning] To be implemented"
 else 
-	echo "[Warrning] Error: Invalid number of arguments"
+	echo "[Error] Invalid number of arguments"
 	exit 1
 fi
 
