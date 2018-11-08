@@ -38,40 +38,74 @@ def main():
 	filter_redirects(page, redirects)
 
 
-def filter_redirects(page, redirects):
-	page_dict = {}
-	last_len=0
+def parse_page_file(page):
+	title_to_id = {}
+	page_ids = set()
 	print("[Info] Reading page file")
 	with gzip.open(page) as p:
 		for line in p:
 			line = line.decode()
 			page_id = int(line.split(',')[0])
 			page_title = line[line.index(',') + 1:-3]
-			if page_id % 13 == 0:
+			if page_id % 61 == 0:
 				print(f"\r[Info] Current id: {page_id: <10}", end = "")
-			last_len = len(f"{page_id}: {page_title}"[0:40])
-			if page_title not in page_dict:
-				page_dict[page_title] = page_id
+			if page_title not in title_to_id:
+				title_to_id[page_title] = page_id
+				page_ids.add(page_id)
 			else:
-				raise RuntimeError(f"[ERROR] Name Colition: {page_title} {page_dict[page_title]} {page_id}")
+				raise RuntimeError(f"[ERROR] Name Colition: {page_title} {title_to_id[page_title]} {page_id}")
 	print("     [Done]")
-	print("[Info] Reading redirects file")
+	return title_to_id, page_ids
+
+def parse_redirect_file(title_to_id, page_ids, redirect):
+	print("[Info] Reading redirect file")
 	removed = 0
 	added = 0
-	with gzip.open(redirects) as r_in, gzip.open(redirects + ".tmp", "wb") as r_out:
-		for line in r_in:
+	redirect_from_id_to_id = {}
+	with gzip.open(redirect) as r:
+		for line in r:
 			line = line.decode()
 			from_id  = int(line.split(',')[0])
 			to_title = line[line.index(',') + 1:-1]
-			if to_title in page_dict:
-				r_out.write(str(from_id).encode() + b',' + str(page_dict[to_title]).encode() + b'\n')
+			if from_id in page_ids and to_title in title_to_id:
+				redirect_from_id_to_id[from_id] = title_to_id[to_title]
 				added += 1
 			else:
 				removed += 1
+			if added % 61 == 0 or removed % 61 == 0:
 				print(f"\r[Info] Filterd (added/removed): {added: >10}/{removed: <10}", end="")
-			if not added % 13:
-				print(f"\r[Info] Filterd (added/removed): {added: >10}/{removed: <10}", end="")
-	print("     [Done]")
+	print(f"\r[Info] Filterd (added/removed): {added: >10}/{removed: <10}        [Done]")
+	return redirect_from_id_to_id
+
+def filter_redirects(page, redirect):
+	title_to_id, page_ids  = parse_page_file(page)
+	redirect_from_id_to_id = parse_redirect_file(title_to_id, page_ids, redirect)
+
+	del title_to_id
+	del page_ids
+
+	print(f"[Info] Writnig to output")
+	written = 0
+	discarded = 0
+	with gzip.open(redirect + ".tmp", 'wb') as redir_out: 
+		for from_id in redirect_from_id_to_id:
+			target_id = redirect_from_id_to_id[from_id]
+
+			deapth = 0
+			while target_id in redirect_from_id_to_id:
+				target_id = redirect_from_id_to_id[target_id]
+				deapth += 1
+				if deapth == 100:
+					target_id = None
+					discarded += 1
+
+			if target_id is not None:
+				redir_out.write(str(from_id).encode() + b',' + str(target_id).encode() + b'\n')
+				written += 1
+			if written % 61 == 0 or discarded % 61 == 0:
+				print(f"\r[Info] Lines written (written/discarded): {written: >10}/{discarded: <10}", end="")
+	print("    [Done]")
+
 
 
 if __name__ == '__main__':
