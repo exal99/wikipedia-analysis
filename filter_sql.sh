@@ -43,4 +43,5 @@ mv "database/$1wiki-$2-page.sql.gz.tmp" "database/$1wiki-$2-page.sql.gz"
 echo "Done"
 echo
 
-
+./filter_redirects.py "database/$1wiki-$2-page.sql.gz" "database/$1wiki-$2-redirect.sql.gz"
+mv "database/$1wiki-$2-redirect.sql.gz.tmp" "database/$1wiki-$2-redirect.sql.gz"
