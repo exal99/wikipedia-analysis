@@ -3,21 +3,23 @@
 """
 Filters the redirect table, removing broken redirects and changing the target to refer
 to id and not title.
+
+------------------------------------
+PAGE FILE FORMAT
+  PAGE_ID,'TITLE',IS_REDIRECT[0|1]\\n
+
+------------------------------------
+REDIRECT FILE FORMAT BEFORE
+  FROM_ID,'TARGET_TITLE'\\n
+
+REDIRECT FILE FORMAT AFTER
+  FROM_ID,TARGET_ID\\n
+
 """
 
 import argparse
 import gzip
 from argparse_helper import *
-
-# REDIRECTS
-# FROM_ID,'TO_TITLE'
-
-# PAGE
-# ID,'TITLE',IS_REDIRECT [0|1]
-
-#------------------------
-
-
 
 
 def get_arguments():
@@ -84,7 +86,7 @@ def filter_redirects(page, redirect):
 	del title_to_id
 	del page_ids
 
-	print(f"[Info] Writnig to output")
+	print(f"[Info] Writing to output")
 	written = 0
 	discarded = 0
 	with gzip.open(redirect + ".tmp", 'wb') as redir_out: 
