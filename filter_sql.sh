@@ -1,6 +1,12 @@
 #! /usr/bin/env bash
 
 
+if [ "$#" -ne 2 ]; then
+	echo "[Error] Requires a language code and a date"
+	exit 1
+fi
+
+
 echo "[Info] Formatting 'pagelinks' file"
 
 pigz -dc < "database/$1wiki-$2-pagelinks.sql.gz" \
