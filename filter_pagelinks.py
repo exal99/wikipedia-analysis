@@ -99,7 +99,7 @@ def filter_pagelinks(page, redirect, pagelinks):
 			pl_from      = int(line.split(",")[0])
 			target_title = line[line.index(',') + 1:-1]
 
-			if pl_from in page_ids and target_title in title_to_page_data:
+			if pl_from in page_ids and target_title in title_to_id:
 				target_id = title_to_id[target_title]
 
 				if target_id in redirect_from_id_to_id:
@@ -113,7 +113,8 @@ def filter_pagelinks(page, redirect, pagelinks):
 
 			if written % 50077 == 0 or discarded % 50077 == 0:
 				print(f"\r[Info] Lines written (written/discarded): {written: >10}/{discarded: <10} " + \
-					  f" {round(100 * written/(written + discarded,1))} %", end="")
+					  f" {round(100 * written/(written + discarded), 1)} %    ", end="")
 
-	print(f"\r[Info] Lines written (written/discarded): {written: >10}/{discarded: <10}", end="")
+	print(f"\r[Info] Lines written (written/discarded): {written: >10}/{discarded: <10} " + \
+              f" {round(100 * written/(written + discarded), 1)} %", end="")
 	print("    [Done]")
