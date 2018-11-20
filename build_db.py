@@ -63,7 +63,7 @@ def insert_into_pagelinks(connection, language_code, date):
 
 def _split_page_line(line):
 	page_id          = line.split(',')[0]
-	page_title       = line[line.index(',') + 1:-3]
+	page_title       = line[line.index(',') + 2:-4]
 	page_is_redirect = line[-2:-1]
 	return page_id, page_title, page_is_redirect
 
