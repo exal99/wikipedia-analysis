@@ -58,20 +58,43 @@ def bidirectional_BFS(connection, from_article, to_article):
 
 	intersections = set()
 
+	time_run = 0
+
 	while source_queue and target_queue:
-		if found_path and (source_queue[0] > source_deapth or target_queue[0] > target_deapth):
-			return construct_path(source_parent, target_parent, from_article, to_article, intersections)
+		time_run += 1
+		print(f'\r',max(source_visited.values()), max(target_visited.values()),end='')
+		if found_path and (source_visited[source_queue[0]] > source_deapth and target_visited[target_queue[0]] > target_deapth):
+			intersections = target_visited.keys() & source_visited.keys()
+			print('\n', max(source_visited.values()), max(target_visited.values()))
+			return source_parent, target_parent, intersections, source_visited, target_visited
 
-		source_added, s_deapth = BFS_source(source_queue, source_visited, source_parent, connection)
-		target_added, t_deapth = BFS_target(target_queue, target_visited, target_parent, connection)
+		if found_path and source_visited[source_queue[0]] > source_deapth:
+			target_added, t_deapth = BFS_target(target_queue, target_visited, target_parent, connection)
+			intersections |= target_added & source_visited.keys()
+		elif found_path and target_visited[target_queue[0]] > target_deapth:
+			source_added, s_deapth = BFS_source(source_queue, source_visited, source_parent, connection)
+			intersections |= source_added & target_visited.keys()
+		else:
+			source_added, s_deapth = BFS_source(source_queue, source_visited, source_parent, connection)
+			target_added, t_deapth = BFS_target(target_queue, target_visited, target_parent, connection)
 
-		intersections |= source_added & target_visited.keys()
-		intersections |= target_added & source_visited.keys()
+		#if not found_path and source_added & target_visited.keys(): # Path from source intersects path from target
+		#	found_path = True
+		#	source_deapth = s_deapth
+		#	target_deapth = t_deapth
+		#elif not found_path and target_added & source_visited.keys(): # Path from target intersects path from source
+		#	found_path = True
+		#	source_deapth = s_deapth
+		#	target_deapth = t_deapth
+
+			intersections |= source_added & target_visited.keys()
+			intersections |= target_added & source_visited.keys()
 
 		if not found_path and intersections:
 			found_path = True
 			source_deapth = s_deapth
 			target_deapth = t_deapth
+			print(s_deapth, t_deapth, len(source_queue), len(target_queue))
 
 	if found_path:
 		return construct_path(source_parent, target_parent, from_article, to_article, intersections)
@@ -79,14 +102,14 @@ def bidirectional_BFS(connection, from_article, to_article):
 		return None
 
 def construct_path(source_parent, target_parent, source, target, intersections):
-	paths = []
+	paths = set()
 
 	for intersection in intersections:
 		from_source_to_inter = construct_path_from_to(source_parent, source, intersection)
 		from_inter_to_target = construct_path_from_to(target_parent, target, intersection, reverse=True)
-		print(from_source_to_inter, from_inter_to_target)
+		print(from_source_to_inter,"-------", from_inter_to_target)
 		for path in itertools.product(from_source_to_inter, from_inter_to_target):
-			paths.append(path[0] + path[1][1:])
+			paths.add(tuple(path[0] + path[1][1:]))
 	return paths
 		
 def construct_path_from_to(source_parent, target, start, reverse=False):
@@ -95,7 +118,7 @@ def construct_path_from_to(source_parent, target, start, reverse=False):
 
 	paths = []
 	for parent in source_parent[start]:
-		for path in construct_path_from_to(source_parent, target, parent):
+		for path in construct_path_from_to(source_parent, target, parent, reverse):
 			if reverse:
 				path.insert(0, start)
 			else:
@@ -138,6 +161,7 @@ def BFS_target(queue, visited, parent, connection):
 
 def main():
 	c=sqlite3.connect('database/enwiki.db')
-	b=BFS(c, 37817,20127)
+	#b=BFS(c, 37817,20127)
+	print(bidirectional_BFS(c, 310678,140471)) # Venus flytrap -> Charlie Brown
 
 #main()
