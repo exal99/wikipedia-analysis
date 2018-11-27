@@ -85,37 +85,64 @@ def construct_path_from_to(source_parent, start, reverse=False):
 
 	return paths
 
+def format_tuple(tup):
+	if len(tup) != 1:
+		return str(tup)
+	else:
+		return str(tup)[:-2] + ')'
+
 def BFS_source(queue, visited, parent, connection):
-	current = queue.popleft()
+	#current = queue.popleft()
 
 	added_articles = set()
+	nodes_on_current_deapth = tuple(queue)
+	queue.clear()
+	edges = collections.defaultdict(list)
 
-	for (linked_article,) in connection.execute('SELECT pl_target FROM pagelinks WHERE pl_from = ?;', (current,)):
-		if linked_article not in visited:
-			parent[linked_article].add(current)
-			visited[linked_article] = visited[current] + 1
-			queue.append(linked_article)
-			added_articles.add(linked_article)
-		elif visited[current] + 1 == visited[linked_article]:
-			parent[linked_article].add(current)
+	query = 'SELECT * FROM pagelinks WHERE pl_from IN {};'.format(format_tuple(nodes_on_current_deapth))
 
-	return added_articles, visited[current]
+	for (edge_from, edge_target) in connection.execute(query):
+		edges[edge_from].append(edge_target)
+
+	for node in nodes_on_current_deapth:
+		for neighbor in edges[node]:
+			if neighbor not in visited:
+				parent[neighbor].add(node)
+				visited[neighbor] = visited[node] + 1
+				queue.append(neighbor)
+				added_articles.add(neighbor)
+			elif visited[node] + 1 == visited[neighbor]:
+				parent[neighbor].add(node)
+	
+	return added_articles, visited[nodes_on_current_deapth[0]]
 
 def BFS_target(queue, visited, parent, connection):
-	current = queue.popleft()
+	#current = queue.popleft()
 
 	added_articles = set()
+	nodes_on_current_deapth = tuple(queue)
+	queue.clear()
+	edges = collections.defaultdict(list)
 
-	for (linked_article,) in connection.execute('SELECT pl_from FROM pagelinks WHERE pl_target = ?;', (current,)):
-		if linked_article not in visited:
-			parent[linked_article].add(current)
-			visited[linked_article] = visited[current] + 1
-			queue.append(linked_article)
-			added_articles.add(linked_article)
-		elif visited[current] + 1 == visited[linked_article]:
-			parent[linked_article].add(current)
+	#query = 'SELECT * FROM pagelinks WHERE pl_target IN '
+	#query += '?;' if len(nodes_on_current_deapth) != 1 else '(?);'
+	query = 'SELECT * FROM pagelinks WHERE pl_target IN {};'.format(format_tuple(nodes_on_current_deapth))
 
-	return added_articles, visited[current]
+
+	for (edge_from, edge_target) in connection.execute(query):
+		edges[edge_target].append(edge_from)
+
+	for node in nodes_on_current_deapth:
+		for neighbor in edges[node]:
+			if neighbor not in visited:
+				parent[neighbor].add(node)
+				visited[neighbor] = visited[node] + 1
+				queue.append(neighbor)
+				added_articles.add(neighbor)
+			elif visited[node] + 1 == visited[neighbor]:
+				parent[neighbor].add(node)
+
+	return added_articles, visited[nodes_on_current_deapth[0]]
 
 def get_id_of_title(connection, title):
 	page_id, is_redirect = connection.execute(f"SELECT page_id, page_is_redirect FROM page WHERE page_title='''{title}'''").fetchone()
