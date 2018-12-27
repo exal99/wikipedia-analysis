@@ -47,8 +47,10 @@ def parse_page_file(page):
 	with gzip.open(page) as p:
 		for line in p:
 			line = line.decode()
-			page_id = int(line.split(',')[0])
-			page_title = line[line.index(',') + 1:-3]
+			[page_id, page_title, _] = line.split('\t')
+			page_id = int(page_id)
+			# page_id = int(line.split(',')[0])
+			# page_title = line[line.index(',') + 1:-3]
 			if page_id % 61 == 0:
 				print(f"\r[Info] Current id: {page_id: <10}", end = "")
 			if page_title not in title_to_id:
@@ -67,8 +69,10 @@ def parse_redirect_file(title_to_id, page_ids, redirect):
 	with gzip.open(redirect) as r:
 		for line in r:
 			line = line.decode()
-			from_id  = int(line.split(',')[0])
-			to_title = line[line.index(',') + 1:-1]
+			[from_id, to_title] = line[:-1].split("\t") # ignores the last character since it's a newline (\n)
+			from_id = int(from_id)
+			# from_id  = int(line.split(',')[0])
+			# to_title = line[line.index(',') + 1:-1]
 			if from_id in page_ids and to_title in title_to_id:
 				redirect_from_id_to_id[from_id] = title_to_id[to_title]
 				added += 1
@@ -102,7 +106,7 @@ def filter_redirects(page, redirect):
 					discarded += 1
 
 			if target_id is not None:
-				redir_out.write(str(from_id).encode() + b',' + str(target_id).encode() + b'\n')
+				redir_out.write(str(from_id).encode() + b'\t' + str(target_id).encode() + b'\n')
 				written += 1
 			if written % 61 == 0 or discarded % 61 == 0:
 				print(f"\r[Info] Lines written (written/discarded): {written: >10}/{discarded: <10}", end="")

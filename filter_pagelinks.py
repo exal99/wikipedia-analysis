@@ -21,7 +21,8 @@ PAGELINK FILE FORMAT AFTER
 
 """	
 
-import argparse_helper
+import argparse
+from argparse_helper import *
 import gzip
 from collections import namedtuple
 
@@ -47,8 +48,10 @@ def parse_page_file(page):
 	with gzip.open(page) as p:
 		for line in p:
 			line = line.decode()
-			page_id     = int(line.split(",")[0])
-			page_title  = line[line.index(',') + 1:-3]
+			[page_id, page_title, _] = line.split('\t')
+			page_id = int(page_id)
+			# page_id     = int(line.split(",")[0])
+			# page_title  = line[line.index(',') + 1:-3]
 	
 			if page_id % 50077 == 0:
 				print(f"\r[Info] Current id: {page_id: <10}", end = "")
@@ -70,9 +73,9 @@ def parse_redirect_file(redirect):
 	with gzip.open(redirect) as r:
 		for ind, line in enumerate(r):
 			line = line.decode()
-			[from_id, to_id] = line.split(",")
+			[from_id, to_id] = line.split("\t") 
 			if from_id not in from_id_to_id:
-					from_id_to_id[int(from_id)] = int(to_id[:-1])
+					from_id_to_id[int(from_id)] = int(to_id[:-1]) # see comment in filter_redirect.py
 			else:
 				raise RuntimeError(f"[ERROR] Id Colition: {from_id} {from_id_to_id[from_id]} {to_id}")
 
@@ -96,8 +99,10 @@ def filter_pagelinks(page, redirect, pagelinks):
 	with gzip.open(pagelinks) as pl_in, gzip.open(pagelinks + ".tmp", "wb") as pl_out:
 		for line in pl_in:
 			line = line.decode()
-			pl_from      = int(line.split(",")[0])
-			target_title = line[line.index(',') + 1:-1]
+			[pl_from, target_title] = line[:-1].split('\t')
+			pl_from = int(pl_from)
+			# pl_from      = int(line.split(",")[0])
+			# target_title = line[line.index(',') + 1:-1]
 
 			if pl_from in page_ids and target_title in title_to_id:
 				target_id = title_to_id[target_title]
@@ -105,7 +110,7 @@ def filter_pagelinks(page, redirect, pagelinks):
 				if target_id in redirect_from_id_to_id:
 					target_id = redirect_from_id_to_id[target_id]
 
-				pl_out.write(str(pl_from).encode() + b',' + str(target_id).encode() + b'\n')
+				pl_out.write(str(pl_from).encode() + b'\t' + str(target_id).encode() + b'\n')
 				written += 1
 
 			else:
@@ -118,3 +123,12 @@ def filter_pagelinks(page, redirect, pagelinks):
 	print(f"\r[Info] Lines written (written/discarded): {written: >10}/{discarded: <10} " + \
               f" {round(100 * written/(written + discarded), 1)} %", end="")
 	print("    [Done]")
+
+
+def main():
+	page, redirect, pagelinks = get_arguments()
+	filter_pagelinks(page, redirect, pagelinks)
+
+
+if __name__ == '__main__':
+	main()
