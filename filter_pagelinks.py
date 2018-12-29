@@ -50,9 +50,7 @@ def parse_page_file(page):
 			line = line.decode()
 			[page_id, page_title, _] = line.split('\t')
 			page_id = int(page_id)
-			# page_id     = int(line.split(",")[0])
-			# page_title  = line[line.index(',') + 1:-3]
-	
+
 			if page_id % 50077 == 0:
 				print(f"\r[Info] Current id: {page_id: <10}", end = "")
 
@@ -101,8 +99,6 @@ def filter_pagelinks(page, redirect, pagelinks):
 			line = line.decode()
 			[pl_from, target_title] = line[:-1].split('\t')
 			pl_from = int(pl_from)
-			# pl_from      = int(line.split(",")[0])
-			# target_title = line[line.index(',') + 1:-1]
 
 			if pl_from in page_ids and target_title in title_to_id:
 				target_id = title_to_id[target_title]
