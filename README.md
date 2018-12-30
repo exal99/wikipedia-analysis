@@ -1,20 +1,18 @@
 # Wikipedia Analysis Tool #
 
-## Downloading the database ## 
+## Building the database ## 
 
-To download the database use the provided `download_db.sh` script.
+To run the tool localy you first need to build the sql database on your computer. This requiers a postgresql server to be running on the computer. To build the database run the `build_db.sh` file in the `builddb` directory. You need to specify a language code for the wikipedia to be downloaded. You may also specify a date of the dump to use. If no date is specifyed then the latest dump is used. To download the latest english wikipedia run:
 
-### Usage ###
+    $ ./build_db.sh en
 
-To download all requierd files use:
+### In case of fire ###
 
-```
-$ ./download_db.sh en 20180801
-```
+If the script at some point would crash or stop before it's done, you may run the scrips individually to recover the progress. The scripts and their order of execution are as follows:
 
-To download only a specific file use:
-```
-$ ./download_db.sh en 20180801 page
-```
+- `dowload_db.sh`: Downloads all the requierd files or just one if specified. Use `./download_db.sh <lang-code> [date]` to download all requierd fiels or `./download_db.sh <lang-code> <date> <file name>` to download one specific file.
+- `filter_sql.sh`: Removes unnesesary data from the sql files. Pass the language code and a date to it to start it. The date can be found in the file name of the downloaded files in the database directory. To run it use `./filter_sql.sh <lang-code> <date>`
+- `sort_pagelinks.sh`: Sorts the pagelinks. This is requierd for the insertion into the sql table. Give it the language code and date to run it: `./sort_pagelinks.sh <lang-code> <date>`
+- `build_sql.sh`: This builds the actual sql table in postgres and inserts all the values. As with the other scripts; pass it the language code and the date and it'll be happy (`./build_sql.sh <lang-code> <date>`).
 
-Of couse `en`, `20180801` and `page` can be any valid lauguage code, date and file name.
+Once the sql table is fully built the ´database/´ folder is no longer requierd and can safely be deleated.
