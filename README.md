@@ -15,4 +15,4 @@ If the script at some point would crash or stop before it's done, you may run th
 - `sort_pagelinks.sh`: Sorts the pagelinks. This is requierd for the insertion into the sql table. Give it the language code and date to run it: `./sort_pagelinks.sh <lang-code> <date>`
 - `build_sql.sh`: This builds the actual sql table in postgres and inserts all the values. As with the other scripts; pass it the language code and the date and it'll be happy (`./build_sql.sh <lang-code> <date>`).
 
-Once the sql table is fully built the ´database/´ folder is no longer requierd and can safely be deleated.
+Once the sql table is fully built the `database/` folder is no longer requierd and can safely be deleated.
