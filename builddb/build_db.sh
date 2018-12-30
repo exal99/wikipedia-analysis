@@ -17,6 +17,6 @@ fi
 
 ./sort_pagelinks.sh $1 $DATE
 
-./build_db.sh $1 $DATE
+./build_sql.sh $1 $DATE
 
 rm -r database
