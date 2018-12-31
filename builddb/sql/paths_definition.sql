@@ -6,5 +6,5 @@ CREATE TABLE paths(
 	path_length INTEGER,
 	npaths INTEGER,
 	example_path INTEGER[],
-	UNIQUE(path_source, path_length)
+	UNIQUE(path_source, path_target)
 );
