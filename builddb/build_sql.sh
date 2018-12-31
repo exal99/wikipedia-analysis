@@ -25,3 +25,5 @@ echo "[Info] Creating links table"
 psql -f "sql/links_definition.sql" wikidb
 ./create_pagelinks.py "database/$1wiki-$2-pagelinks_f_id.sql.gz" "database/$1wiki-$2-pagelinks_t_id.sql.gz" \
     | psql -c "COPY links FROM STDIN WITH DELIMITER E'\t' QUOTE '''' ESCAPE '\' CSV;" wikidb
+
+psql -f "sql/paths_definition.sql" wikidb
