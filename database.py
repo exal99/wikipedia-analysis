@@ -13,12 +13,14 @@ class WikiDatabase():
 	def get_outgoing_count(self, outgoing):
 		outgoing_str = format_tuple(outgoing)
 		self.cur.execute("SELECT SUM(outgoing_count) FROM links WHERE id IN %s;" % outgoing_str)
-		return self.cur.fetchone()[0]
+		res = self.cur.fetchone()[0]
+		return res if res is not None else 0
 
 	def get_incoming_count(self, incoming):
 		incoming_str = format_tuple(incoming)
 		self.cur.execute("SELECT SUM(incoming_count) FROM links WHERE id IN %s;" % incoming_str)
-		return self.cur.fetchone()[0]
+		res = self.cur.fetchone()[0]
+		return res if res is not None else 0
 
 	def get_incoming_links(self, incoming):
 		incoming_str = format_tuple(incoming)
@@ -50,6 +52,19 @@ class WikiDatabase():
 				if not self.cur.fetchone()[0]:
 					return page_id
 			page_id = 0
+
+	def dump_statistics(self, sources, targets, all_paths):
+		#values = ','.join([f"({source}, {target}, {len(paths[0])}, {len(paths) - 1}, '{str(paths[0]).replace('(','{').replace(')','}')}')" \
+		#                   for source, target, paths in zip(sources, targets, all_paths)])
+		values = ""
+		for source, target, paths in zip(sources, targets, all_paths):
+			if paths is not None:
+				values += f"({source}, {target}, {len(paths[0]) - 1}, {len(paths)}, '{{{str(paths[0])[1:-1]}}}'),"
+			else:
+				values += f"({source}, {target}, 0, 0, '{{}}'),"
+		if values:
+			self.cur.execute("INSERT INTO paths VALUES %s;" %values[:-1]) #removes the last comma
+			self.conn.commit()
 
 
 

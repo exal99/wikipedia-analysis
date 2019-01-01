@@ -26,6 +26,8 @@ def bidirectional_BFS(db, source, target):
 			neighbours = db.get_incoming_links(target_queue)
 			new_queue = []
 			for target in target_queue:
+				if target not in neighbours: # if an article has no links continue
+					continue
 				for neighbour in neighbours[target]:
 					if neighbour not in target_visited:
 						target_parent[neighbour].add(target)
@@ -39,6 +41,8 @@ def bidirectional_BFS(db, source, target):
 			neighbours = db.get_outgoing_links(source_queue)
 			new_queue = []
 			for source in source_queue:
+				if source not in neighbours:
+					continue
 				for neighbour in neighbours[source]:
 					if neighbour not in source_visited:
 						source_parent[neighbour].add(source)
@@ -49,6 +53,10 @@ def bidirectional_BFS(db, source, target):
 			source_queue = tuple(new_queue)
 
 		intersections = source_visited.keys() & target_visited.keys()
+	if intersections:
+		return construct_path(source_parent, target_parent, intersections)
+	else:
+		return None
 
 
 def construct_path(source_parent, target_parent, intersections):
