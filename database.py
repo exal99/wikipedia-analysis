@@ -2,8 +2,8 @@ import psycopg2
 import random
 
 class WikiDatabase():
-	def __init__(self, database):
-		self.conn = psycopg2.connect(f"dbname={database}")
+	def __init__(self, database, **kwargs):
+		self.conn = psycopg2.connect(dbname=database, **kwargs)
 		self.cur = self.conn.cursor()
 		self.cur.execute('SELECT MIN(page_id) FROM page;')
 		self.min_id = self.cur.fetchone()[0]
