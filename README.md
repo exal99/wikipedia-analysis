@@ -16,3 +16,7 @@ If the script at some point would crash or stop before it's done, you may run th
 - `build_sql.sh`: This builds the actual sql table in postgres and inserts all the values. As with the other scripts; pass it the language code and the date and it'll be happy (`./build_sql.sh <lang-code> <date>`).
 
 Once the sql table is fully built the `database/` folder is no longer requierd and can safely be deleated.
+
+# Results #
+
+If you are just interested about the results I've created web page here on github with the results: https://exal99.github.io/.
