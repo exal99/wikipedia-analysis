@@ -6,9 +6,20 @@ import database
 import sys
 import select
 import time
+import argparse
 
 BUFFER_SIZE = 100
 
+
+def get_available_databases():
+	cur = psycopg2.connect(dbname='postgres').cursor()
+	cur.execute("SELECT datname FROM pg_database WHERE datistemplate=FALSE;")
+	return [row[0][:-6] for row in cur if row[0].endswith('wikidb')]
+
+def get_arguments():
+	parser = argparse.ArgumentParser()
+	parser.add_argument('language', choices=get_available_databases(), help='The language code of the wikipedia')
+	return parser.parse_args().language
 
 def analyze_path(dbase):
 	article1 = dbase.get_random_page()
@@ -18,9 +29,9 @@ def analyze_path(dbase):
 	return [article1, article2], [article2, article1], [paths, paths_reversed]
 
 
-def wiki_analyzer():
+def wiki_analyzer(language):
 	running = True
-	dbase = database.WikiDatabase('enwikidb')
+	dbase = database.WikiDatabase(f'{language}wikidb')
 
 	source_buffer = []
 	target_buffer = []
@@ -64,7 +75,8 @@ def wiki_analyzer():
 
 
 def main():
-	wiki_analyzer()
+	lang = get_arguments()
+	wiki_analyzer(lang)
 
 if __name__ == '__main__':
 	main()
