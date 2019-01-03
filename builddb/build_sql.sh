@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-createdb wikidb
+createdb $1wikidb
 
 echo "[Info] Creating page table"
 psql -f "sql/page_definition.sql" wikidb

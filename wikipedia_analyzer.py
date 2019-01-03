@@ -20,7 +20,7 @@ def analyze_path(dbase):
 
 def wiki_analyzer():
 	running = True
-	dbase = database.WikiDatabase('wikidb')
+	dbase = database.WikiDatabase('enwikidb')
 
 	source_buffer = []
 	target_buffer = []
