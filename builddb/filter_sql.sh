@@ -48,7 +48,7 @@ echo
 
 ./filter_redirects.py "database/$1wiki-$2-page.sql.gz" "database/$1wiki-$2-redirect.sql.gz"
 mv "database/$1wiki-$2-redirect.sql.gz.tmp" "database/$1wiki-$2-redirect.sql.gz"
-mv "database/$1wiki-$2-page.sql.gz.tmp" "database/$1wiki-$2-redirect.sql.gz"
+mv "database/$1wiki-$2-page.sql.gz.tmp" "database/$1wiki-$2-page.sql.gz"
 
 ./filter_pagelinks.py "database/$1wiki-$2-page.sql.gz" "database/$1wiki-$2-redirect.sql.gz" "database/$1wiki-$2-pagelinks.sql.gz"
-mv "database/$1wiki-$2-pagelinks.sql.gz.tmp" "database/$1wiki-$2-redirect.sql.gz"
+mv "database/$1wiki-$2-pagelinks.sql.gz.tmp" "database/$1wiki-$2-pagelinks.sql.gz"
