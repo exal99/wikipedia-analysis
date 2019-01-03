@@ -7,7 +7,7 @@ if [ "$#" -eq 2 ]; then
 	./download_db.sh $1 $2
 elif [ "$#" -eq 1 ]; then
 	./download_db.sh $1
-	DATE=`ls "database/" | sed -rn "s/^enwiki-([0-9]+)-.*$/\1/p" | head -n 1 -q`
+	DATE=`ls "database/" | sed -rn "s/^$1wiki-([0-9]+)-.*$/\1/p" | head -n 1 -q`
 else
 	echo "[Error] Invalid number of arguments"
 	exit 1

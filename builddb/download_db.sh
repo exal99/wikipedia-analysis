@@ -45,7 +45,7 @@ elif [ "$#" -eq 3 ]; then
 	check_sha1sum $1 $2
 elif [ "$#" -eq 1 ]; then 
 	download_file $1 "latest" "sha1sums"
-	DATE=`sed -rn "s/^.* enwiki-([0-9]+)-.*$/\1/p" "database/$1wiki-latest-sha1sums.txt" | head -n 1 -q` 
+	DATE=`sed -rn "s/^.* $1wiki-([0-9]+)-.*$/\1/p" "database/$1wiki-latest-sha1sums.txt" | head -n 1 -q` 
 	download_file $1 $DATE "pagelinks"
 	download_file $1 $DATE "page"
 	download_file $1 $DATE "redirect"
