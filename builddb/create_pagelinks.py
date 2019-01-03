@@ -3,6 +3,7 @@
 import argparse
 import gzip
 from DefaultOrderedDict import DefaultOrderedDict
+from OrderedSet import OrderedSet
 from argparse_helper import *
 
 class GroupLinks:
@@ -11,21 +12,21 @@ class GroupLinks:
 		self.mapping = DefaultOrderedDict(lambda : [None, None])
 
 	def add_incoming(self, to, incoming_list):
-		self.mapping[to][0] = incoming_list
+		self.mapping[to][0] = OrderedSet(incoming_list)
 
 		while self.first_page_id() < to and self.first_value()[0] is None:
 			_, outgoing_list = self.first_value()
-			print(format_values(self.first_page_id(), [], outgoing_list))
+			print(format_values(self.first_page_id(), OrderedSet(), outgoing_list))
 			del self.mapping[self.first_page_id()]
 
 		self._cleanup(to)
 
 	def add_outgoing(self, from_page, outgoing_list):
-		self.mapping[from_page][1] = outgoing_list
+		self.mapping[from_page][1] = OrderedSet(outgoing_list)
 
 		while self.first_page_id() < from_page and self.first_value()[1] is None:
 			incoming_list, _ = self.first_value()
-			print(format_values(self.first_page_id(), incoming_list, []))
+			print(format_values(self.first_page_id(), incoming_list, OrderedSet()))
 			del self.mapping[self.first_page_id()]
 
 		self._cleanup(from_page)
@@ -37,8 +38,8 @@ class GroupLinks:
 
 	def dump_rest(self):
 		for (page_id, [incoming_list, outgoing_list]) in self.mapping.items():
-			incoming_list = incoming_list if incoming_list is not None else []
-			outgoing_list = outgoing_list if outgoing_list is not None else []
+			incoming_list = incoming_list if incoming_list is not None else OrderedSet()
+			outgoing_list = outgoing_list if outgoing_list is not None else OrderedSet()
 			print(format_values(page_id, incoming_list, outgoing_list))
 
 	def first_page_id(self):
@@ -51,7 +52,7 @@ class GroupLinks:
 
 
 def format_values(page_id, incoming_list, outgoing_list):
-	return f"{page_id}\t{len(incoming_list)}\t{len(outgoing_list)}\t'{{{repr(incoming_list)[1:-1]}}}'\t'{{{repr(outgoing_list)[1:-1]}}}'"
+	return f"{page_id}\t{len(incoming_list)}\t{len(outgoing_list)}\t'{str(incoming_list)}'\t'{str(outgoing_list)}'"
 
 def get_arguments():
 	parser = argparse.ArgumentParser()
