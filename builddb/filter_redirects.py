@@ -93,6 +93,7 @@ def filter_redirects(redirect_file_name, title_to_id, page_ids, redirect_from_id
 	print(f"[Info] Writing to output")
 	written = 0
 	discarded = 0
+	to_remove = []
 	with gzip.open(redirect_file_name + ".tmp", 'wb') as redir_out: 
 		for from_id in redirect_from_id_to_id:
 			target_id = redirect_from_id_to_id[from_id]
@@ -102,7 +103,7 @@ def filter_redirects(redirect_file_name, title_to_id, page_ids, redirect_from_id
 				target_id = redirect_from_id_to_id[target_id]
 				deapth += 1
 				if deapth == 100:
-					del redirect_from_id_to_id[from_id]
+					to_remove.append(from_id)
 					target_id = None
 					discarded += 1
 
@@ -111,6 +112,8 @@ def filter_redirects(redirect_file_name, title_to_id, page_ids, redirect_from_id
 				written += 1
 			if written % 61 == 0 or discarded % 61 == 0:
 				print(f"\r[Info] Lines written (written/discarded): {written: >10}/{discarded: <10}", end="")
+	for from_id in to_remove:
+		del redirect_from_id_to_id[from_id]
 	print("    [Done]")
 
 
