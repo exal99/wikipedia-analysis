@@ -34,7 +34,8 @@ class WikiDatabase():
 
 	def get_id_of_title(self, title):
 		self.cur.execute("SELECT page_id FROM page WHERE page_title='%s';" % title)
-		return self.cur.fetchone()[0]
+		res = self.cur.fetchone()
+		return res[0] if res else None
 
 	def get_titles_of_ids(self, ids):
 		ids_str = format_tuple(ids)
@@ -54,8 +55,6 @@ class WikiDatabase():
 			page_id = 0
 
 	def dump_statistics(self, sources, targets, all_paths):
-		#values = ','.join([f"({source}, {target}, {len(paths[0])}, {len(paths) - 1}, '{str(paths[0]).replace('(','{').replace(')','}')}')" \
-		#                   for source, target, paths in zip(sources, targets, all_paths)])
 		values = ""
 		for source, target, paths in zip(sources, targets, all_paths):
 			if paths is not None:

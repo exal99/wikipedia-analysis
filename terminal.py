@@ -67,20 +67,23 @@ class _FunctionDescriptor:
 
 	def __get__(self, instance, cls):
 		possible = []
-		for function in cls.__dict__:
-			if callable(cls.__dict__[function]) and function.startswith(self.name) and self.name != function:
-				possible.append(function)
+		for other_cls in cls.__mro__:
+			for function in other_cls.__dict__:
+				if callable(other_cls.__dict__[function]) and function.startswith(self.name) and self.name != function:
+					possible.append(function)
 		possible.sort(key=lambda x:x[len(self.name):])
-		cls = type(instance)
 
 		def selector(*args, **kwargs):
 			for function in possible[:-1]:
 				if len(args) == int(function[len(self.name):]) - 1:
 					return getattr(instance, function)(*args, **kwargs)
-			return getattr(instance, possible[-1])(*args, **kwargs)
+			if '+' in possible[-1][len(self.name):] or len(args) == int(possible[-1][len(self.name):]) - 1:
+				return getattr(instance, possible[-1])(*args, **kwargs)
+			else:
+				return getattr(instance, possible[0])(*args, **kwargs)
 
 		def formatting_wrapper(): pass
-		selector.__doc__ = cls.__dict__[possible[0]].__doc__ if cls.__dict__[possible[0]].__doc__ else ''
+		selector.__doc__ = getattr(instance, possible[0]).__doc__ if getattr(instance, possible[0]).__doc__ else ''
 		selector.__name__ = self.name[8:]
 		selector.__wrapped__ = formatting_wrapper
 		selector.__module__ = 'non-existing'
@@ -121,42 +124,65 @@ class _TerminalMeta(type):
 				filtered_clsdict[key] = _command(item)
 		return super().__new__(cls, clsname, bases, filtered_clsdict)
 
+
+class Options:
+	def __init__(self, container):
+		self.container = container
+
+	def __call__(self, value):
+		if value not in self.container:
+			raise ValueError
+		return value
+
+	def __str__(self):
+		return "\b" * 9 + f"one of the following: '{self.container}'"
+
 class Terminal(metaclass=_TerminalMeta):
 
 	def __init__(self, prompt='> '):
 		self.prompt = prompt
 		self.running = False
+		try:
+			self._format_help()
+		except KeyError:
+			pass
+
+	def _format_help(self):
+		commands = ""
+		for cls in type(self).__mro__:
+			for attr in cls.__dict__:
+				if attr.startswith('command_') and (not attr.endswith('+') and not attr[-1].isnumeric()):
+					commands += f"\t\t\t{attr[8:]: <16}-\t"
+					if callable(cls.__dict__[attr]):
+						commands += cls.__dict__[attr].__doc__.strip().split('\n')[0] + "\n"
+					else:
+						commands += getattr(self, attr).__doc__.strip().split('\n')[0] + "\n"
+		Terminal.command_help1.__doc__ = Terminal.command_help1.__doc__.format(commands[2:])
+
 
 	def command_help(self, command:str):
-		if 'command_' + command in type(self).__dict__:
-			if callable(type(self).__dict__['command_' + command]):
-				help(type(self).__dict__['command_' + command])
-			else:
-				help(getattr(self, 'command_' + command))
-		else:
-			return f"No command named '{command}'"
+		for cls in type(self).__mro__:
+			if 'command_' + command in cls.__dict__:
+				if callable(cls.__dict__['command_' + command]):
+					help(cls.__dict__['command_' + command])
+					return
+				else:
+					help(getattr(self, 'command_' + command))
+					return
+		return f"No command named '{command}'"
 
 	def command_help(self):
 		"""
 		Displays this help message.
 		Type 'help name' to find out more about the command 'name'.
+		If the beginning of a command is unambigous then only the begining is required.
 
 		The following commands are available:
+
+		{}
 		"""
-		commands = ""
-		for attr in type(self).__dict__:
-			if attr.startswith('command_') and (not attr.endswith('+') and not attr[-1].isnumeric()):
-				commands += f"\t\t\t{attr[8:]}\t-\t"
-				if callable(type(self).__dict__[attr]):
-					commands += type(self).__dict__[attr].__doc__.strip().split('\n')[0] + "\n"
-				else:
-					commands += getattr(self, attr).__doc__.strip().split('\n')[0] + "\n"
 
-		help_func = self.command_help
-		doc_lines = [line for line in help_func.__doc__.split('\n') if not line.strip().startswith("Press 'q' to exit this help message")]
-		help_func.__doc__ = '\n'.join(doc_lines) + "\n"+commands
-
-		help(help_func)
+		help(self.command_help)
 
 	def command_quit(self):
 		"""
@@ -170,29 +196,34 @@ class Terminal(metaclass=_TerminalMeta):
 
 	def _check_ambiguity(self, partial_command):
 		partial_command = 'command_' + partial_command
-		return [getattr(self, command_name) for command_name in type(self).__dict__ if command_name.startswith(partial_command)]
+		return [getattr(self, command_name) for cls in type(self).__mro__ for command_name in cls.__dict__ if command_name.startswith(partial_command)]
 
 	def _execute_command(self, command, *args):
 		res = command(*args)
-		print(res if res is not None else '')
+		print(res if res is not None else '', end='\n' if res else '')
 
 	def run(self):
 		self.running = True
 		while self.running:
 			inp = input(self.prompt)
-			command, *args = inp.lower().split(' ')
+			command, *args = inp.split(' ')
+			command = command.lower()
 			if inp:
-				if 'command_' + command in type(self).__dict__:
-					command = getattr(self, 'command_' + command)
-					self._execute_command(command, *args)
-				elif self._check_ambiguity(command):
-					posibilities = self._check_ambiguity(command)
-					formatted_pos = [f"'{func.__name__}'" for func in posibilities]
-					if len(set(formatted_pos)) == 1:
-						self._execute_command(posibilities[0], *args)
-					else:
-						pos_str = ', '.join(formatted_pos[:-1]) + f" or {formatted_pos[-1]}" if len(formatted_pos) > 1 else formatted_pos[0]
-						print(f"'{command}' is ambiguous. Did you mean {pos_str}")
+				for cls in type(self).__mro__:
+					if 'command_' + command in cls.__dict__:
+						command = getattr(self, 'command_' + command)
+						self._execute_command(command, *args)
+						break
+					elif self._check_ambiguity(command):
+						posibilities = self._check_ambiguity(command)
+						formatted_pos = [f"'{func.__name__}'" for func in posibilities]
+						if len(set(formatted_pos)) == 1:
+							self._execute_command(posibilities[0], *args)
+							break
+						else:
+							pos_str = ', '.join(formatted_pos[:-1]) + f" or {formatted_pos[-1]}" if len(formatted_pos) > 1 else formatted_pos[0]
+							print(f"'{command}' is ambiguous. Did you mean {pos_str}")
+							break
 				else:
 					print(f"No command named '{command}'")
 
