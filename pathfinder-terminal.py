@@ -1,5 +1,12 @@
 #! /usr/bin/env python3
 
+import graph_tool as gt
+import graph_tool.draw as draw
+import graph_tool.stats as stats
+
+import numpy as np
+
+
 from terminal import Terminal, Options
 from database import WikiDatabase
 from wikipedia_analyzer import  get_available_databases
@@ -116,6 +123,31 @@ class PathfinderTerminal(Terminal):
 			return "No saved paths. Do a search before you try to list them."
 
 		return f"Number of Paths: {len(self.last_res)}"
+
+	def command_draw(self):
+		if self.last_res is None:
+			return "No saved paths. Do a search before you try to draw them."
+
+		edge_list = [[t.replace('_', ' ') for t in self.db.get_titles_of_ids((val, path[ind+1]))] for path in self.last_res for ind, val in enumerate(path[:-1])]
+
+		graph = gt.Graph()
+		strings = graph.add_edge_list(edge_list, string_vals=True, hashed=True)
+
+		stats.remove_parallel_edges(graph)
+
+		fill_color = graph.new_vertex_property('vector<float>', val=[0, 0, 0.640625, 0.9])
+		fill_color[graph.vertex(0)] = [0, 0.640625, 0, 0.9]
+		fill_color[graph.vertex(len(self.last_res[0]) - 1)] = [0.640625, 0, 0, 0.9]
+
+
+		draw.interactive_window(graph, vertex_fill_color=fill_color, vertex_text=strings,
+								vertex_text_position=graph.new_vertex_property('float', val=0),
+			                    vertex_anchor=graph.new_vertex_property('int', val=0),
+			                    geometry=(1200,1600),vertex_font_size=graph.new_vertex_property('float', val=20))
+
+		
+
+
 
 
 def main():
