@@ -135,7 +135,7 @@ class Options:
 		return value
 
 	def __str__(self):
-		return "\b" * 9 + f"one of the following: '{self.container}'"
+		return "\b" * 10 + f"one of the following: '{self.container}"
 
 class Terminal(metaclass=_TerminalMeta):
 
@@ -205,26 +205,30 @@ class Terminal(metaclass=_TerminalMeta):
 	def run(self):
 		self.running = True
 		while self.running:
-			inp = input(self.prompt)
-			command, *args = inp.split(' ')
-			command = command.lower()
-			if inp:
-				for cls in type(self).__mro__:
-					if 'command_' + command in cls.__dict__:
-						command = getattr(self, 'command_' + command)
-						self._execute_command(command, *args)
-						break
-					elif self._check_ambiguity(command):
-						posibilities = self._check_ambiguity(command)
-						formatted_pos = [f"'{func.__name__}'" for func in posibilities]
-						if len(set(formatted_pos)) == 1:
-							self._execute_command(posibilities[0], *args)
+			try:
+				inp = input(self.prompt)
+				command, *args = inp.split(' ')
+				command = command.lower()
+				if inp:
+					for cls in type(self).__mro__:
+						if 'command_' + command in cls.__dict__:
+							command = getattr(self, 'command_' + command)
+							self._execute_command(command, *args)
 							break
-						else:
-							pos_str = ', '.join(formatted_pos[:-1]) + f" or {formatted_pos[-1]}" if len(formatted_pos) > 1 else formatted_pos[0]
-							print(f"'{command}' is ambiguous. Did you mean {pos_str}")
-							break
-				else:
-					print(f"No command named '{command}'")
+						elif self._check_ambiguity(command):
+							posibilities = self._check_ambiguity(command)
+							formatted_pos = [f"'{func.__name__}'" for func in posibilities]
+							if len(set(formatted_pos)) == 1:
+								self._execute_command(posibilities[0], *args)
+								break
+							else:
+								pos_str = ', '.join(formatted_pos[:-1]) + f" or {formatted_pos[-1]}" if len(formatted_pos) > 1 else formatted_pos[0]
+								print(f"'{command}' is ambiguous. Did you mean {pos_str}")
+								break
+					else:
+						print(f"No command named '{command}'")
+			except (EOFError, KeyboardInterrupt) as e:
+				print()
+				self.running = False 
 
 
