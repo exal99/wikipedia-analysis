@@ -229,6 +229,6 @@ class Terminal(metaclass=_TerminalMeta):
 						print(f"No command named '{command}'")
 			except (EOFError, KeyboardInterrupt) as e:
 				print()
-				self.running = False 
+				print(self.command_quit())
 
 
