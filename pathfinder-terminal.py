@@ -41,19 +41,27 @@ class PathfinderTerminal(Terminal):
 	def format_path(self, path):
 		return ' -> '.join([title.replace('_', ' ') for title in self.db.get_titles_of_ids(path)])
 
-	def command_path(self, source:str, target:str):
+	def command_path(self):
 		"""
 		Searches for a path between a pair of atricles.
 		Given a start ('source') and an end ('target') article all paths between the two
 		will be found (assuming that there are paths between them). Both 'source' and 'target'
 		needs to be sanetized, i.e. the spaces needs to be replaced by underscores ('_'). To
-		retrive more paths than the one given use the 'list' command.
+		retrive more paths than the one given use the 'list' command. If <source> and <target> 
+		is not given a random start and finnish will be picked.
 
 		Usage:
+		path
 		path <source> <target>
 
 		Use underscore ('_') instead of spaces in <source> and <target>.
 		"""
+		from_page = self.command_random()[1:-1].replace(' ', '_')
+		to_page = self.command_random()[1:-1].replace(' ', '_')
+		return f"From: '{from_page.replace('_', ' ')}'\nTo: '{to_page.replace('_', ' ')}'\n" + self.command_path(from_page, to_page)
+
+	def command_path(self, source:str, target:str):
+		
 		if self.db is None:
 			return "No database selected. Select a database with 'selectdb'"
 		source_id = self.db.get_id_of_title(source)
@@ -125,6 +133,12 @@ class PathfinderTerminal(Terminal):
 		return f"Number of Paths: {len(self.last_res)}"
 
 	def command_draw(self):
+		"""
+		Draws the current resulting paths as a directed graph
+
+		Usage:
+		draw
+		"""
 		if self.last_res is None:
 			return "No saved paths. Do a search before you try to draw them."
 
@@ -143,7 +157,21 @@ class PathfinderTerminal(Terminal):
 		draw.interactive_window(graph, vertex_fill_color=fill_color, vertex_text=strings,
 								vertex_text_position=graph.new_vertex_property('float', val=0),
 			                    vertex_anchor=graph.new_vertex_property('int', val=0),
-			                    geometry=(1200,1600),vertex_font_size=graph.new_vertex_property('float', val=20))
+			                    geometry=(1600,1200),vertex_font_size=graph.new_vertex_property('float', val=20))
+
+	def command_random(self):
+		"""
+		Returns a random article
+
+		Usage:
+		random
+		"""
+		if self.db is None:
+			return "No database selected. Select a database with 'selectdb'"
+
+		page_id = self.db.get_random_page()
+		page_title = self.db.get_titles_of_ids((page_id,))[0].replace('_', ' ')
+		return f"'{page_title}'"
 
 		
 
