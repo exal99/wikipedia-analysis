@@ -9,6 +9,7 @@ class WikiDatabase():
 		self.min_id = self.cur.fetchone()[0]
 		self.cur.execute('SELECT MAX(page_id) FROM page;')
 		self.max_id = self.cur.fetchone()[0]
+		self.last_starts_with = ()
 
 	def get_outgoing_count(self, outgoing):
 		outgoing_str = format_tuple(outgoing)
@@ -64,6 +65,21 @@ class WikiDatabase():
 		if values:
 			self.cur.execute("INSERT INTO paths VALUES %s;" %values[:-1]) #removes the last comma
 			self.conn.commit()
+
+	def get_all_starts_with(self, text):
+		number_to_fetch = 50
+		if self.last_starts_with:
+			if text == self.last_starts_with[0]:
+				return self.last_starts_with[1] #[:10] + (['...'] if len(self.last_starts_with[1]) > 10 else [])
+			if text.startswith(self.last_starts_with[0]) and len(self.last_starts_with[1]) <= 50:
+				return [result for result in self.last_starts_with[1] if result.startswith(text)] #[:10] + (['...'] if len(self.last_starts_with[1]) > 10 else [])
+		text += '%'
+		self.cur.execute("SELECT page_title FROM page WHERE page_title LIKE %s LIMIT {};".format(number_to_fetch + 1), (text,))
+		res = [result[0] for result in self.cur.fetchall()]
+		self.cur.execute("SELECT page_title FROM page WHERE page_title=%s;", (text[:-1],))
+		res += [result[0] for result in self.cur.fetchall()]
+		self.last_starts_with = (text[:-1], res)
+		return res #[:10] + (['...'] if len(res) > 10 else [])
 
 
 

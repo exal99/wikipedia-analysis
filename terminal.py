@@ -1,6 +1,30 @@
 import inspect
 import functools
 import collections
+import os
+import readline
+
+HISTORY_FILE = ""
+HISTORY_LENGTH = 100
+
+def init(alias):
+	global HISTORY_FILE
+	HISTORY_FILE = os.path.join(os.path.expanduser('~'), '.' + alias)
+	if not os.path.exists(HISTORY_FILE):
+		with open(HISTORY_FILE, 'w'): pass
+
+def _make_completer(commands):
+	def completer(text, state):
+		result = [command for command in commands if command.startswith(text)] + [None]
+		return result[state]
+	return completer
+
+def _save_history():
+	readline.append_history_file(HISTORY_LENGTH, HISTORY_FILE)
+
+def _read_history():
+	readline.read_history_file(HISTORY_FILE)
+	readline.set_history_length(HISTORY_LENGTH)
 
 
 def _command(command_func):
@@ -147,6 +171,16 @@ class Terminal(metaclass=_TerminalMeta):
 		except KeyError:
 			pass
 
+		readline.parse_and_bind('tab: complete')
+		readline.set_completer(_make_completer(self._get_commands_name()))
+		readline.set_auto_history(True)
+		_read_history()
+
+	def _get_commands_name(self):
+		return [attr[8:] for cls in type(self).__mro__
+		                 for attr in cls.__dict__
+		                 if attr.startswith('command_') and (not attr.endswith('+') and not attr[-1].isnumeric())]
+
 	def _format_help(self):
 		commands = ""
 		for cls in type(self).__mro__:
@@ -192,6 +226,7 @@ class Terminal(metaclass=_TerminalMeta):
 		quit
 		"""
 		self.running = False
+		_save_history()
 		return "Exiting"
 
 	def _check_ambiguity(self, partial_command):
