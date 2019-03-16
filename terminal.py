@@ -194,6 +194,15 @@ class Terminal(metaclass=_TerminalMeta):
 		self.running = False
 		return "Exiting"
 
+	def command_clear(self):
+		"""
+		Clears the screen
+
+		Usage:
+		clear
+		"""
+		print(chr(27) + "[2J", end="")
+
 	def _check_ambiguity(self, partial_command):
 		partial_command = 'command_' + partial_command
 		return [getattr(self, command_name) for cls in type(self).__mro__ for command_name in cls.__dict__ if command_name.startswith(partial_command)]
