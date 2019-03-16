@@ -64,6 +64,8 @@ class PathfinderTerminal(Terminal):
 		
 		if self.db is None:
 			return "No database selected. Select a database with 'selectdb'"
+		source = source.replace("'", "''")
+		target = target.replace("'", "''")
 		source_id = self.db.get_id_of_title(source)
 		target_id = self.db.get_id_of_title(target)
 		if source_id is None:
@@ -134,7 +136,7 @@ class PathfinderTerminal(Terminal):
 
 	def command_draw(self):
 		"""
-		Draws the current resulting paths as a directed graph
+		Draws the current resulting paths as a directed graph.
 
 		Usage:
 		draw
@@ -161,7 +163,7 @@ class PathfinderTerminal(Terminal):
 
 	def command_random(self):
 		"""
-		Returns a random article
+		Returns a random article.
 
 		Usage:
 		random
