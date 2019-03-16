@@ -5,12 +5,14 @@ import graph_tool.draw as draw
 import graph_tool.stats as stats
 
 import numpy as np
+import readline
 
-
-from terminal import Terminal, Options
+from terminal import Terminal, Options, init
 from database import WikiDatabase
 from wikipedia_analyzer import  get_available_databases
 from pathfinder import bidirectional_BFS
+
+init('pathfinder-history')
 
 
 class PathfinderTerminal(Terminal):
@@ -18,10 +20,25 @@ class PathfinderTerminal(Terminal):
 		super().__init__(*args, **kwargs)
 		self.db = None
 		self.last_res = None
+		readline.set_completer(self.make_completer(readline.get_completer()))
 		try:
 			PathfinderTerminal.command_selectdb.__doc__ = PathfinderTerminal.command_selectdb.__doc__.format({database for database in get_available_databases()})
 		except KeyError:
 			pass
+
+	def make_completer(self, old_completer):
+		def completer(text, state):
+			line = readline.get_line_buffer()
+			if ' ' in line and line.startswith('path'):
+				if self.db is None: return None
+				return (self.db.get_all_starts_with(text) + [None])[state]
+			if ' ' in line and line.startswith('selectdb'):
+				return ([dbname for dbname in get_available_databases() if dbname.startswith(text)] + [None])[state]
+			return old_completer(text, state)
+			
+			
+		return completer
+
 
 	def command_selectdb(self, db:Options(get_available_databases())):
 		"""
