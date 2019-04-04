@@ -10,7 +10,7 @@ import itertools
 from typing import List, Tuple, DefaultDict, Set
 
 
-def bidirectional_BFS(db : WikiDatabase, source : int, target : int) -> List[Tuple[int, ...]]: 
+def bidirectional_BFS(db : database.WikiDatabase, source : int, target : int) -> List[Tuple[int, ...]]: 
 	"""
 	Finds all the shortest paths between the given 'source' and 'target'.
 	This function uses a bidirectional breath first search (BFS).

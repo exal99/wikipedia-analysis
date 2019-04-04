@@ -39,7 +39,7 @@ def get_arguments():
 	parser.add_argument('language', choices=get_available_databases(), help='The language code of the wikipedia')
 	return parser.parse_args().language
 
-def analyze_path(dbase: WikiDatabase) -> Tuple[List[int], List[int], List[List[Tupe[int, ...]]]]:
+def analyze_path(dbase: database.WikiDatabase) -> Tuple[List[int], List[int], List[List[Tuple[int, ...]]]]:
 	"""
 	Picks two articles at random and computes the shortest path between them in both directions.
 
