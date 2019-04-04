@@ -1,5 +1,8 @@
 # Wikipedia Analysis Tool #
 
+## Requierments ##
+To run the program a postgresql server is requierd to run localy. If you wish to draw the resulting path in the terminal [graph-tool](https://graph-tool.skewed.de/) is also requierd.
+
 ## Building the database ## 
 
 To run the tool localy you first need to build the sql database on your computer. This requiers a postgresql server to be running on the computer. To build the database run the `build_db.sh` file in the `builddb` directory. You need to specify a language code for the wikipedia to be downloaded. You may also specify a date of the dump to use. If no date is specifyed then the latest dump is used. To download the latest english wikipedia run:
