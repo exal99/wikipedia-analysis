@@ -1,5 +1,12 @@
 #! /usr/bin/env python3
 
+"""
+This module is the main analyzer of the database. It does not provide
+a nice user interface instead it only does what it is ment to do: gather 
+data! Multiple instances of this program may be launched simultaneously
+to increase speed.
+"""
+
 import psycopg2
 import pathfinder
 import database
@@ -8,20 +15,41 @@ import select
 import time
 import argparse
 
+from typing import List, Tuple
+
 BUFFER_SIZE = 100
 
 
-def get_available_databases():
+def get_available_databases() -> List[str]:
+	"""
+	Returns all available databases currently downloaded on the computer.
+
+	Return:
+	Returns the list of all language codes of the available databases to search in. 
+	"""
 	cur = psycopg2.connect(dbname='postgres').cursor()
 	cur.execute("SELECT datname FROM pg_database WHERE datistemplate=FALSE;")
 	return [row[0][:-6] for row in cur if row[0].endswith('wikidb')]
 
 def get_arguments():
+	"""
+	Gets the command line argument that specifies the database to seach in.
+	"""
 	parser = argparse.ArgumentParser()
 	parser.add_argument('language', choices=get_available_databases(), help='The language code of the wikipedia')
 	return parser.parse_args().language
 
-def analyze_path(dbase):
+def analyze_path(dbase: WikiDatabase) -> Tuple[List[int], List[int], List[List[Tupe[int, ...]]]]:
+	"""
+	Picks two articles at random and computes the shortest path between them in both directions.
+
+	Arguments:
+	dbase 		The database to search in.
+
+	Return:
+	Returns the result of the two searches. The first list is the start, the second
+	the ends and the last one is the paths.
+	"""
 	article1 = dbase.get_random_page()
 	article2 = dbase.get_random_page()
 	paths = pathfinder.bidirectional_BFS(dbase, article1, article2)
@@ -29,7 +57,15 @@ def analyze_path(dbase):
 	return [article1, article2], [article2, article1], [paths, paths_reversed]
 
 
-def wiki_analyzer(language):
+def wiki_analyzer(language: str) -> None:
+	"""
+	Analyzes a single language and prints the speed at which it's currently
+	running at. Dumps the result into the database when the buffer fills up
+	or when the user exits the program (or if it crashes).
+
+	Arguments:
+	language 		The language code for the database.
+	"""
 	running = True
 	dbase = database.WikiDatabase(f'{language}wikidb')
 
@@ -75,6 +111,9 @@ def wiki_analyzer(language):
 
 
 def main():
+	"""
+	The main function. Starts the analyzer.
+	"""
 	lang = get_arguments()
 	wiki_analyzer(lang)
 
