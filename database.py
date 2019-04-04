@@ -3,10 +3,10 @@ This module provides a nice wrapper around the psycopg2 module to interface
 with my databases.
 """
 
-from typing import Tuple, Dict, List
-
 import psycopg2
 import random
+
+from typing import Tuple, Dict, List, Any
 
 class WikiDatabase():
 	"""
@@ -28,7 +28,7 @@ class WikiDatabase():
 		self.max_id = self.cur.fetchone()[0]
 		self.last_starts_with = ()
 
-	def get_outgoing_count(self, outgoing: Tuple[int]) -> int:
+	def get_outgoing_count(self, outgoing: Tuple[int, ...]) -> int:
 		"""
 		Returns the total number of outgoing links among the given articles.
 
@@ -43,7 +43,7 @@ class WikiDatabase():
 		res = self.cur.fetchone()[0]
 		return res if res is not None else 0
 
-	def get_incoming_count(self, incoming: Tuple[int]) -> int:
+	def get_incoming_count(self, incoming: Tuple[int, ...]) -> int:
 		"""
 		Returns the total number of incoming links among the given articles.
 
@@ -58,7 +58,7 @@ class WikiDatabase():
 		res = self.cur.fetchone()[0]
 		return res if res is not None else 0
 
-	def get_incoming_links(self, incoming: Tuple[int]) -> Dict[int, List[int]]:
+	def get_incoming_links(self, incoming: Tuple[int, ...]) -> Dict[int, List[int]]:
 		"""
 		Gets all the incoming links of the given list of articles.
 
@@ -72,7 +72,7 @@ class WikiDatabase():
 		self.cur.execute("SELECT id, incoming_links FROM links WHERE id IN %s;" % incoming_str)
 		return dict(self.cur.fetchall())
 
-	def get_outgoing_links(self, outgoing: Tuple[int]) -> Dict[int, List[int]]:
+	def get_outgoing_links(self, outgoing: Tuple[int, ...]) -> Dict[int, List[int]]:
 		"""
 		See get_incoming_links!
 		"""
@@ -95,7 +95,7 @@ class WikiDatabase():
 		res = self.cur.fetchone()
 		return res[0] if res else None
 
-	def get_titles_of_ids(self, ids: Tuple[int]) -> List[str]:
+	def get_titles_of_ids(self, ids: Tuple[int, ...]) -> List[str]:
 		"""
 		Gets all the titles of the given tuple of ids.
 
@@ -124,7 +124,7 @@ class WikiDatabase():
 					return page_id
 			page_id = 0
 
-	def dump_statistics(self, sources: List[int], targets: List[int], all_paths: List[Tuple[int]]) -> None:
+	def dump_statistics(self, sources: List[int], targets: List[int], all_paths: List[Tuple[int, ...]]) -> None:
 		"""
 		Inserts the result of multiple searches into the database.
 
@@ -169,7 +169,7 @@ class WikiDatabase():
 
 
 
-def format_tuple(tup: Tuple) -> str:
+def format_tuple(tup: Tuple[Any, ...]) -> str:
 	"""
 	Formats the tuple to be used in an SQL-request. If a
 	python tuple only has one element it is represented as

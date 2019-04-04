@@ -3,14 +3,14 @@ This module contains all the tools for finding the shortes path
 between two articles and constructing the path between them.
 """
 
-from typing import List, Tuple, DefaultDict, Set
-
 import database
 import collections
 import itertools
 
+from typing import List, Tuple, DefaultDict, Set
 
-def bidirectional_BFS(db : WikiDatabase, source : int, target : int) -> List[Tuple[int]]: 
+
+def bidirectional_BFS(db : WikiDatabase, source : int, target : int) -> List[Tuple[int, ...]]: 
 	"""
 	Finds all the shortest paths between the given 'source' and 'target'.
 	This function uses a bidirectional breath first search (BFS).
@@ -80,7 +80,7 @@ def bidirectional_BFS(db : WikiDatabase, source : int, target : int) -> List[Tup
 
 
 def construct_path(source_parent: DefaultDict[int, Set[int]], target_parent: DefaultDict[int, Set[int]],
-	               intersections: Set[int]) -> List[Tuple[int]]:
+	               intersections: Set[int]) -> List[Tuple[int, ...]]:
 	"""
 	Constructs all paths given the parrent nodes from the forward search, the
 	backward search and all the intersection points of the two searches. The

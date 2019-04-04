@@ -1,5 +1,9 @@
 #! /usr/bin/env python3
 
+"""
+This module contains the main user interface terminal for the program
+"""
+
 import graph_tool as gt
 import graph_tool.draw as draw
 import graph_tool.stats as stats
@@ -12,11 +16,18 @@ from database import WikiDatabase
 from wikipedia_analyzer import  get_available_databases
 from pathfinder import bidirectional_BFS
 
+from typing import Callable, List
+
+
 init('pathfinder-history')
 
 
 class PathfinderTerminal(Terminal):
-	def __init__(self, *args, **kwargs):
+	"""
+	A terminal for interfacing with the SQL database and finding
+	the shortest path between articles and displaying the result.
+	"""
+	def __init__(self, *args, **kwargs) -> None:
 		super().__init__(*args, **kwargs)
 		self.db = None
 		self.last_res = None
@@ -26,7 +37,11 @@ class PathfinderTerminal(Terminal):
 		except KeyError:
 			pass
 
-	def make_completer(self, old_completer):
+	def make_completer(self, old_completer: Callable[[str, int], str]) -> Callable[[str, int], str]:
+		"""
+		Creates a new completer for the readline module. It now also autocompleats
+		articles when doing a search.
+		"""
 		def completer(text, state):
 			line = readline.get_line_buffer()
 			if ' ' in line and line.startswith('path'):
@@ -55,7 +70,11 @@ class PathfinderTerminal(Terminal):
 		self.last_res = None
 		return f"Current database updated to '{db}'"
 
-	def format_path(self, path):
+	def format_path(self, path: List[int]) -> str:
+		"""
+		Formats a path as a string with each title seperated by
+		a '->' and replaced all underscores with acctual spaces.
+		"""
 		return ' -> '.join([title.replace('_', ' ') for title in self.db.get_titles_of_ids(path)])
 
 	def command_path(self):
@@ -197,7 +216,10 @@ class PathfinderTerminal(Terminal):
 
 
 
-def main():
+def main() -> None:
+	"""
+	The main function. Creates and starts the terminal.
+	"""
 	terminal = PathfinderTerminal()
 	terminal.run()
 
