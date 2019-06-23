@@ -135,7 +135,7 @@ class PathfinderTerminal(Terminal):
 		if len(self.last_res) == 0:
 			return "No available paths."
 		for path in self.last_res:
-			res_str += self.format_path(path)
+			res_str += self.format_path(path) + "\n"
 		return res_str
 
 	def command_list(self, npaths:int):
